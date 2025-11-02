@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Event Management System </title>
+  <style>
+    :root{--accent:#5b21b6;--muted:#6b7280}
+    *{box-sizing:border-box}
+    body{font-family:Inter, system-ui, Arial;margin:0;background:#f8fafc;color:#111}
+    header{background:linear-gradient(90deg,#eef2ff,#ffffff);padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    header h1{margin:0;font-size:20px;color:var(--accent)}
+    .container{max-width:1100px;margin:22px auto;padding:0 16px}
+
+    /* layout */
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:20px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+
+    /* packages */
+    .packages{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    @media (max-width:700px){.packages{grid-template-columns:1fr}}
+    .card{background:white;border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(15,23,42,0.06)}
+    .card img{width:100%;height:150px;object-fit:cover;border-radius:8px}
+    .card h3{margin:10px 0 6px}
+    .card p{margin:0;color:var(--muted);font-size:14px}
+    .card .meta{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+    .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(91,33,182,0.12)}
+
+    /* gallery */
+    .gallery{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .gallery img{width:calc(33% - 6px);height:90px;object-fit:cover;border-radius:8px}
+    @media (max-width:700px){.gallery img{width:48%}}
+
+    /* booking panel */
+    .panel{position:sticky;top:18px}
+    .panel .panel-inner{background:white;padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(15,23,42,0.06)}
+    label{display:block;font-size:13px;margin-top:10px;color:var(--muted)}
+    input,select,textarea{width:100%;padding:10px;margin-top:6px;border-radius:8px;border:1px solid #e6e7ec}
+    .price-tag{font-weight:700;color:var(--accent);font-size:18px;margin-top:12px}
+
+    /* admin table */
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:8px;border-bottom:1px solid #eef2f6;text-align:left;font-size:13px}
+    .small{font-size:12px;color:var(--muted)}
+
+    footer{padding:24px;text-align:center;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Event Management • Demo</h1>
+    <div>
+      <button class="btn" id="open-admin">Admin Portal</button>
+      <button class="btn ghost" id="clear-storage">Clear Data</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="grid">
+      <section>
+        <div class="card">
+          <h2 style="margin:0 0 8px">Available Packages</h2>
+          <div class="packages" id="packages">
+            <!-- JS will inject packages here -->
+          </div>
+
+          <h2 style="margin:18px 0 8px">Gallery</h2>
+          <div class="gallery" id="gallery">
+            <!-- images injected -->
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <h2 style="margin:0 0 8px">Bookings (Quick view)</h2>
+          <div id="recent-bookings" class="small">No bookings yet.</div>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <div class="panel-inner">
+          <h3 style="margin:0">Book an Event</h3>
+          <p class="small">Select a package — the form will autofill price & title.</p>
+
+          <label for="package-select">Choose Package</label>
+          <select id="package-select"></select>
+
+          <label for="event-date">Event Date</label>
+          <input type="date" id="event-date" />
+
+          <label for="name">Full Name</label>
+          <input id="name" placeholder="Your name" />
+
+          <label for="email">Email</label>
+          <input id="email" placeholder="you@example.com" />
+
+          <label for="phone">Phone</label>
+          <input id="phone" placeholder="Mobile number" />
+
+          <label for="notes">Notes (optional)</label>
+          <textarea id="notes" rows="3" placeholder="Any special requests..."></textarea>
+
+          <div class="price-tag">Price: <span id="price">₹0</span></div>
+
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn" id="book-btn">Book Now</button>
+            <button class="btn ghost" id="reset-btn">Reset</button>
+          </div>
+
+          <div id="form-msg" class="small" style="margin-top:10px;color:green"></div>
+
+          <hr style="margin:14px 0">
+          <h4 style="margin:0 0 8px">Admin Actions</h4>
+          <p class="small">Click <em>Admin Portal</em> at top to view and manage bookings. Password: <strong>admin123</strong></p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer>&copy; 2025 Event Management Demo</footer>
+
+  <!-- Admin modal (simple) -->
+  <div id="admin-modal" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,0.5);align-items:center;justify-content:center;padding:20px">
+    <div style="background:white;width:min(980px,95%);max-height:90vh;overflow:auto;border-radius:12px;padding:16px;position:relative">
+      <button id="close-admin" style="position:absolute;right:12px;top:12px">Close</button>
+      <h2>Admin Portal - Bookings</h2>
+      <div id="admin-content"></div>
+    </div>
+  </div>
+
+  <script>
+    // --- Sample packages data (would come from server in real app) ---
+    const packages = [
+      {id:1,title:'Standard Celebration',desc:'Venue + basic decor + 3-hour slot',price:49999,img:'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=60'},
+      {id:2,title:'Premium Gala',desc:'Premium decor + catering for 100 + DJ',price:119999,img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=60'},
+      {id:3,title:'Wedding Package',desc:'Full wedding planning + photography',price:249999,img:'https://tse4.mm.bing.net/th/id/OIP.-8z8juD7qxtz71rPQoKUlAHaCl?pid=Api&P=0&h=180'},
+      {id:4,title:'Corporate Meetup',desc:'Conference setup + AV + Snacks',price:79999,img:'https://tse2.mm.bing.net/th/id/OIP.YqWLGbHDvTdCXfDP4UA0wAHaCx?pid=Api&P=0&h=180' }
+    ];
+
+    const galleryImages = [
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=1200&q=60',
+      'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=60',
+      'https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=1200&q=60',
+      'https://images.unsplash.com/photo-1558979158-65a1eaa08691?auto=format&fit=crop&w=1200&q=60',
+      'https://sp.yimg.com/ib/th/id/OIP.4H5GAlK8JdQ5HTqZUnRFowHaE8?pid=Api&w=148&h=148&c=7&dpr=2&rs=1',
+      'https://sp.yimg.com/ib/th/id/OIP.A23g_z-aOXrPM-2h2mi2AgHaE8?pid=Api&w=148&h=148&c=7&dpr=2&rs=1'
+    ];
+
+    // --- DOM refs ---
+    const packagesEl = document.getElementById('packages');
+    const galleryEl = document.getElementById('gallery');
+    const packageSelect = document.getElementById('package-select');
+    const priceEl = document.getElementById('price');
+    const bookBtn = document.getElementById('book-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const formMsg = document.getElementById('form-msg');
+    const recentEl = document.getElementById('recent-bookings');
+
+    // inject packages
+    packages.forEach(pkg =>{
+      const div = document.createElement('div'); div.className='card';
+      div.innerHTML = `
+        <img src="${pkg.img}&w=800" alt="${pkg.title}" />
+        <h3>${pkg.title}</h3>
+        <p>${pkg.desc}</p>
+        <div class="meta">
+          <div class="small">₹${numberWithCommas(pkg.price)}</div>
+          <div>
+            <button class="btn" data-id="${pkg.id}">Select</button>
+          </div>
+        </div>
+      `;
+      packagesEl.appendChild(div);
+
+      // add to select
+      const opt = document.createElement('option'); opt.value = pkg.id; opt.textContent = `${pkg.title} — ₹${numberWithCommas(pkg.price)}`;
+      packageSelect.appendChild(opt);
+    });
+
+    // inject gallery
+    galleryImages.forEach(src=>{const img=document.createElement('img');img.src=src+'&w=600';galleryEl.appendChild(img)});
+
+    // helper
+    function numberWithCommas(x){return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g,",")}
+
+    // package select listener + package cards select
+    function setSelectedPackage(id){
+      const pkg = packages.find(p=>p.id==id);
+      if(!pkg) return;
+      priceEl.textContent = '₹' + numberWithCommas(pkg.price);
+      document.getElementById('name').focus();
+    }
+
+    packageSelect.addEventListener('change',e=>setSelectedPackage(e.target.value));
+    packagesEl.addEventListener('click',e=>{
+      const btn = e.target.closest('button'); if(!btn) return;
+      const id = btn.dataset.id; packageSelect.value=id; setSelectedPackage(id);
+      // auto-scroll to form on selection
+      document.getElementById('event-date').scrollIntoView({behavior:'smooth',block:'center'});
+    });
+
+    // bookings storage
+    function loadBookings(){
+      try{return JSON.parse(localStorage.getItem('eventBookings')||'[]')}
+      catch(e){return []}
+    }
+    function saveBookings(list){localStorage.setItem('eventBookings',JSON.stringify(list))}
+
+    // show recent
+    function renderRecent(){
+      const list = loadBookings();
+      if(!list.length){recentEl.textContent='No bookings yet.';return}
+      recentEl.innerHTML = list.slice(-5).reverse().map(b=>`<div style="padding:8px 0;border-bottom:1px dashed #eef"><strong>${escapeHtml(b.name)}</strong> — <span class="small">${escapeHtml(b.packageTitle)} • ${b.date} • ₹${numberWithCommas(b.price)}</span></div>`).join('')
+    }
+
+    // escape helper
+    function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m])}
+
+    // booking action
+    bookBtn.addEventListener('click',()=>{
+      const pkgId = packageSelect.value; const pkg = packages.find(p=>p.id==pkgId);
+      const date = document.getElementById('event-date').value;
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const notes = document.getElementById('notes').value.trim();
+      if(!pkgId || !date || !name || !email){formMsg.style.color='crimson';formMsg.textContent='Please fill package, date, name and email.';return}
+
+      const booking = {id:Date.now(),packageId:pkg.id,packageTitle:pkg.title,price:pkg.price,date,name,email,phone,notes,created:new Date().toISOString()}
+      const list = loadBookings(); list.push(booking); saveBookings(list);
+      formMsg.style.color='green'; formMsg.textContent='Booking saved locally ✅';
+      renderRecent();
+      // simple visual feedback
+      setTimeout(()=>{formMsg.textContent=''},3000);
+      // reset (keep selected package)
+      document.getElementById('event-date').value=''; document.getElementById('name').value=''; document.getElementById('email').value=''; document.getElementById('phone').value=''; document.getElementById('notes').value='';
+    });
+
+    resetBtn.addEventListener('click',()=>{packageSelect.selectedIndex=0;priceEl.textContent='₹0';document.getElementById('event-date').value='';document.getElementById('name').value='';document.getElementById('email').value='';document.getElementById('phone').value='';document.getElementById('notes').value='';formMsg.textContent='';})
+
+    // admin modal and actions
+    const adminModal = document.getElementById('admin-modal');
+    const adminContent = document.getElementById('admin-content');
+    document.getElementById('open-admin').addEventListener('click',()=>{
+      const pass = prompt('Enter admin password:');
+      if(pass!== 'admin123'){alert('Incorrect password');return}
+      showAdmin();
+    });
+    document.getElementById('close-admin').addEventListener('click',()=>adminModal.style.display='none');
+
+    function showAdmin(){
+      adminModal.style.display='flex';
+      const list = loadBookings();
+      if(!list.length){adminContent.innerHTML='<p>No bookings found.</p>';return}
+      // build table
+      let html = '<table><thead><tr><th>#</th><th>Name</th><th>Package</th><th>Date</th><th>Price</th><th>Contact</th><th>Notes</th><th>Action</th></tr></thead><tbody>';
+      list.slice().reverse().forEach((b,i)=>{
+        html+=`<tr data-id="${b.id}"><td>${i+1}</td><td>${escapeHtml(b.name)}</td><td>${escapeHtml(b.packageTitle)}</td><td>${escapeHtml(b.date)}</td><td>₹${numberWithCommas(b.price)}</td><td>${escapeHtml(b.email)}<br>${escapeHtml(b.phone)}</td><td>${escapeHtml(b.notes)}</td><td><button class="btn" data-action="delete" data-id="${b.id}">Delete</button></td></tr>`
+      })
+      html += '</tbody></table>';
+      adminContent.innerHTML = html;
+
+      // attach delete listeners
+      adminContent.querySelectorAll('button[data-action="delete"]').forEach(btn=>btn.addEventListener('click',e=>{
+        const id = Number(btn.dataset.id);
+        if(!confirm('Delete this booking?')) return;
+        let updated = loadBookings().filter(x=>x.id!==id); saveBookings(updated); showAdmin(); renderRecent();
+      }))
+    }
+
+    // clear storage (for demo)
+    document.getElementById('clear-storage').addEventListener('click',()=>{if(confirm('Clear ALL demo booking data?')){localStorage.removeItem('eventBookings');renderRecent();alert('Cleared')}})
+
+    // initial render
+    renderRecent();
+    // set default select label
+    const placeholder = document.createElement('option'); placeholder.value=''; placeholder.textContent='-- Select a package --'; placeholder.selected=true; placeholder.disabled=true; packageSelect.prepend(placeholder);
+  </script>
+</body>
+</html>
